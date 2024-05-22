@@ -1,10 +1,8 @@
-﻿namespace ConsoleApp2;
-
-using Messaging.Abstractions;
+﻿using Messaging.Abstractions;
 using Messaging.RabbitMq;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
+
+namespace TestConsole;
 
 class Program
 {
@@ -22,7 +20,7 @@ class Program
         publisher.Publish(message);
 
         var messageStream = subscriber.GetMessageStream();
-        var subscription = messageStream.Subscribe(receivedMessage => Console.WriteLine($"Processed: {receivedMessage.SampleProperty1}"));
+        var subscription = messageStream.Subscribe(m => HandleMessage(m));
 
         // Keep the subscriber alive for a while to process messages
         await Task.Delay(TimeSpan.FromSeconds(10));
@@ -30,6 +28,12 @@ class Program
         // Dispose the subscription and services
         subscription.Dispose();
         ((IDisposable)serviceProvider).Dispose();
+    }
+
+    private static void HandleMessage(SampleMessage receivedMessage)
+    {
+        Console.WriteLine($"Processed: {receivedMessage.SampleProperty1}");
+        
     }
 
     private static void ConfigureServices(IServiceCollection services)
