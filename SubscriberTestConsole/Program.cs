@@ -13,19 +13,25 @@ class Program
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
 
-        var publisher = serviceProvider.GetService<IMessagePublisher<SampleMessage>>();
+        var subscriber = serviceProvider.GetService<IMessageSubscriber<SampleMessage>>();
 
-        var message = new SampleMessage { SampleProperty1 = "Value1" };
-        publisher.Publish(message);
 
+        var messageStream = subscriber.GetMessageStream();
+        var subscription = messageStream.Subscribe(m => HandleMessage(m));
         Console.ReadLine();
+        subscription.Dispose();
         ((IDisposable)serviceProvider).Dispose();
     }
 
+    private static void HandleMessage(SampleMessage receivedMessage)
+    {
+        Console.WriteLine($"Processed: {receivedMessage.SampleProperty1}");
+
+    }
 
     private static void ConfigureServices(IServiceCollection services)
     {
-        services.AddSingleton<IMessagePublisher<SampleMessage>>(sp => new RabbitMqPublisher<SampleMessage>("localhost", "demo_queue"));
+        services.AddSingleton<IMessageSubscriber<SampleMessage>>(sp => new RabbitMqSubscriber<SampleMessage>("localhost", "demo_queue"));
     }
 }
 
